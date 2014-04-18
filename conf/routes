@@ -1,0 +1,13 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET     /                           controllers.Application.index(role ?= "EMPLOYEE")
+GET     /mobile                           controllers.Application.mobile
+GET     /operations                 controllers.OperationWS.operations(from)
+GET     /feed                       controllers.Application.feed(role, lower: Int, higher: Int)
+GET     /ws                         controllers.OperationWS.websocket
+
+# Map static resources from the /public folder to the /assets URL path
+GET     /assets/*file               controllers.Assets.at(path="/public", file)

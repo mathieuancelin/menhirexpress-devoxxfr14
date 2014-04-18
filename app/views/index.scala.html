@@ -1,0 +1,148 @@
+@(role: String)
+
+@main("Operations monitor") {
+
+<style>
+    .status {
+        background: #7FB6CC;
+        color: #fff;
+        padding: 5px;
+    }
+
+    .operation.public {
+        background: #609954;
+        color: #fff;
+        padding: 5px;
+    }
+
+    .operation.private {
+        background: #993830;
+        color: #fff;
+        padding: 5px;
+    }
+
+    .disabled {
+        background: #ccc !important;
+    }
+</style>
+
+<h3>Operations monitor, connected as @role</h3>
+
+<form id="filter">
+    Lower bound (€) <input type="text" value="0" id="min">
+    Higher bound (€) <input type="text" value="1000" id="max">
+    <input type="submit" value="Filter">
+</form>
+
+<div id="container" style="height: 180px; margin: 0 auto"></div>
+<div id="events"></div>
+
+<script src="@routes.Assets.at("javascripts/highcharts.js")" type="text/javascript"></script>
+<script type="text/javascript" charset="utf-8">
+
+var feed;
+var chart;
+var series;
+var open = function (min, max) {
+    if (feed) {
+        feed.close()
+    }
+
+    feed = new EventSource('/feed?role=@role&lower=' + min + '&higher=' + max)
+
+    feed.onmessage = function (e) {
+        var data = JSON.parse(e.data)
+        if (typeof data.amount === 'undefined') {
+            $('#events').prepend("<p class='status'>[" + data.from + "] - STATUS: " + data.message + " : " + new Date(data.timestamp) + " " + "</p>")
+        } else if (typeof data.level !== 'undefined') {
+            $('#events').prepend("<p class='operation " + data.level + "'>[" + data.from + "] - OPERATION with customer " + data.userid + " : " + data.amount + " €</p>")
+            if (typeof series !== 'undefined') {
+                series.addPoint([(new Date()).getTime(), data.amount], true, true);
+            }
+        }
+    }
+    $('#events p').addClass('disabled')
+}
+
+Highcharts.setOptions({
+    global: {
+        useUTC: false
+    }
+});
+
+$('#container').highcharts({
+    chart: {
+        type: 'spline',
+        animation: {
+            duration: 50
+        },
+        marginRight: 10,
+        events: {
+            load: function () {
+                series = this.series[0];
+            }
+        }
+    },
+    title: {
+        text: 'Live operations amount'
+    },
+    xAxis: {
+        type: 'datetime',
+        tickPixelInterval: 150
+    },
+    yAxis: {
+        title: {
+            text: 'Amount (€)'
+        },
+        plotLines: [
+            {
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }
+        ],
+        min: 0,
+        max: 1000
+    },
+    tooltip: {
+        formatter: function () {
+            return '<b>' + this.series.name + '</b><br/>' +
+                    Highcharts.dateFormat('%Y-%m-%d %H:%M:%S', this.x) + '<br/>' +
+                    Highcharts.numberFormat(this.y, 2);
+        }
+    },
+    legend: {
+        enabled: false
+    },
+    exporting: {
+        enabled: false
+    },
+    series: [
+        {
+            name: 'Live operations amount',
+            data: (function () {
+                // generate an array of random data
+                var data = [],
+                        time = (new Date()).getTime(),
+                        i;
+
+                for (i = -19; i <= 0; i++) {
+                    data.push({
+                        x: time + i * 1000,
+                        y: 0//(Math.random()) * 1000 + 1
+                    });
+                }
+                return data;
+            })()
+        }
+    ]
+});
+
+$('#filter').submit(function (e) {
+    e.preventDefault()
+    open($('#min').val(), $('#max').val())
+}).submit()
+
+        </script>
+
+}

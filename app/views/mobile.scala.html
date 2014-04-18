@@ -1,0 +1,85 @@
+@()
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Sales injector</title>
+        <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("ratchet/css/ratchet.min.css")">
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("ratchet/css/ratchet-theme-ios.min.css")">
+        <link rel="shortcut icon" type="image/png" href="@routes.Assets.at("images/favicon.png")">
+        <script src="@routes.Assets.at("javascripts/jquery-1.9.0.min.js")" type="text/javascript"></script>
+        <script src="@routes.Assets.at("ratchet/js/ratchet.min.js")" type="text/javascript"></script>
+    </head>
+    <body>
+        <header class="bar bar-nav">
+            <h1 class="title">Menhir Express</h1>
+        </header>
+        <div class="content">
+            <div class="content-padded">
+                <br/>
+                <h1 style="text-align: center;" id="amount">0 €</h1>
+                <br/>
+                <button type="button" id="Lutece" class="btn btn-positivee btn-block injector">Lutece</button>
+                <button type="button" id="Lugdunum" class="btn btn-positivee btn-block injector">Lugdunum</button>
+                <button type="button" id="Condevicnum" class="btn btn-positivee btn-block injector">Condevicnum</button>
+                <button type="button" id="Burdigala" class="btn btn-positivee btn-block injector">Burdigala</button>
+            </div>
+        </div>
+        <nav class="bar bar-tab">
+            <a class="tab-item active" href="#">
+                <span class="icon icon-home"></span>
+                <span class="tab-label">Sale</span>
+            </a>
+            <a class="tab-item" href="#">
+                <span class="icon icon-person"></span>
+                <span class="tab-label">Vendor</span>
+            </a>
+            <a class="tab-item" href="#">
+                <span class="icon icon-star-filled"></span>
+                <span class="tab-label">Favorites</span>
+            </a>
+            <a class="tab-item" href="#">
+                <span class="icon icon-search"></span>
+                <span class="tab-label">Search</span>
+            </a>
+            <a class="tab-item" href="#">
+                <span class="icon icon-gear"></span>
+                <span class="tab-label">Settings</span>
+            </a>
+        </nav>
+        <script type="text/javascript">
+            function rndBool() {
+                return Math.random() >= 0.5;
+            }
+            function rnd() {
+                return Math.floor((Math.random() * 1000) + 1);
+            }
+            $(document).ready(function () {
+                var socket = new WebSocket("ws://" + location.host + "/ws")
+                $('.injector').click(function (e) {
+                    e.preventDefault();
+                    var public = rndBool();
+                    var amount = rnd();
+                    var level = "private";
+                    if (public) {
+                        level = "public";
+                        $("#amount").css('color', 'green');
+                    } else {
+                        $("#amount").css('color', 'red');
+                    }
+                    $('#amount').html(amount + " €");
+                    var from = $(this).attr("id")
+                    var slug = JSON.stringify({
+                        amount: amount, level: level, from: from, userid: "Selfservix-" + rnd(), timestamp: new Date().getTime()
+                    });
+                    console.log("sending slug : " + slug);
+                    socket.send(slug);
+                })
+            });
+        </script>
+    </body>
+</html>
