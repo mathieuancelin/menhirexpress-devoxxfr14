@@ -1,3 +1,14 @@
+Video
+========
+
+The live coding of the project is available here 
+
+https://parleys.com/play/53b51400e4b0a0080954fc88/chapter0/about
+
+or here 
+
+http://www.youtube.com/watch?v=gSVrolOP3VU
+
 How to run it
 =====================================
 
